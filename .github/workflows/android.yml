@@ -38,6 +38,12 @@ jobs:
           echo "android.enableJetifier=true" >> gradle.properties
           cat gradle.properties
 
+      - name: Fix launcher XML (remove XML header)
+        working-directory: project
+        run: |
+          sed -i '1{/<?xml/d;}' app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml || true
+          sed -i '1{/<?xml/d;}' app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml || true
+
       - name: Generate Gradle Wrapper (8.7)
         working-directory: project
         run: |
