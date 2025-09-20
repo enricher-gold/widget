@@ -1,75 +1,50 @@
-name: Android CI (build from ZIP)
+name: Android CI (with ZIP)
 
 on:
   push:
-    branches: [ main ]
-  workflow_dispatch:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
 
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      # Забираем код из репозитория
+      - name: Checkout sources
+        uses: actions/checkout@v3
 
+      # Устанавливаем JDK (Android Gradle Plugin требует минимум 11, лучше 17)
       - name: Set up JDK 17
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v3
         with:
-          distribution: temurin
           java-version: '17'
+          distribution: 'temurin'
 
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
+      # Устанавливаем unzip (обычно он уже есть, но на всякий случай)
+      - name: Install unzip
+        run: sudo apt-get update && sudo apt-get install -y unzip
 
-      - name: Install SDK packages (API 34)
-        run: sdkmanager "platforms;android-34" "build-tools;34.0.0"
-
+      # Распаковываем твой архив в корень
       - name: Unzip project
-        run: |
-          sudo apt-get update && sudo apt-get install -y unzip
-          rm -rf project
-          unzip WikiMediaArtWidget_GitHub.zip -d project
-          ls -la project
+        run: unzip WikiMediaArtWidget_GitHub.zip -d .
 
-      - name: Create gradle.properties
-        working-directory: project
-        run: |
-          echo "android.useAndroidX=true" >> gradle.properties
-          echo "android.enableJetifier=true" >> gradle.properties
-          cat gradle.properties
+      # Делаем gradlew исполняемым
+      - name: Grant execute permission for gradlew
+        run: chmod +x ./WikiMediaArtWidget_GitHub/gradlew
 
-      - name: Fix broken launcher icons
-        working-directory: project
-        run: |
-          cat > app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml <<'EOF'
-          <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
-              <background android:drawable="@mipmap/ic_launcher_background"/>
-              <foreground android:drawable="@mipmap/ic_launcher_foreground"/>
-          </adaptive-icon>
-          EOF
+      # Сборка проекта
+      - name: Build with Gradle
+        run: cd WikiMediaArtWidget_GitHub && ./gradlew build
 
-          cat > app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml <<'EOF'
-          <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
-              <background android:drawable="@mipmap/ic_launcher_background"/>
-              <foreground android:drawable="@mipmap/ic_launcher_foreground"/>
-          </adaptive-icon>
-          EOF
+      # (опционально) Собрать debug APK
+      - name: Assemble Debug APK
+        run: cd WikiMediaArtWidget_GitHub && ./gradlew assembleDebug
 
-      - name: Generate Gradle Wrapper (8.7)
-        working-directory: project
-        run: |
-          curl -s https://get.sdkman.io | bash
-          source "$HOME/.sdkman/bin/sdkman-init.sh"
-          sdk install gradle 8.7
-          gradle wrapper --gradle-version 8.7
-          chmod +x ./gradlew
-
-      - name: Build Debug APK
-        working-directory: project
-        run: ./gradlew assembleDebug --stacktrace
-
-      - name: Upload APK artifact
-        uses: actions/upload-artifact@v4
+      # (опционально) Загружаем apk как артефакт, чтобы скачать его из GitHub Actions
+      - name: Upload Debug APK
+        uses: actions/upload-artifact@v3
         with:
-          name: app-debug-apk
-          path: project/app/build/outputs/apk/debug/app-debug.apk
+          name: app-debug
+          path: WikiMediaArtWidget_GitHub/app/build/outputs/apk/debug/app-debug.apk
