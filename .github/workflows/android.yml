@@ -24,7 +24,7 @@ jobs:
         uses: gradle/gradle-build-action@v2
 
       - name: Unzip project
-        run: unzip WikiMediaArtWidget_GitHub.zip -d .
+        run: unzip -o WikiMediaArtWidget_GitHub.zip -d .
 
       - name: Build Debug APK
         run: gradle assembleDebug --stacktrace
