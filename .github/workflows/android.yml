@@ -3,8 +3,6 @@ name: Android CI (Build + Release)
 on:
   push:
     branches: [ "main" ]
-    tags:
-      - 'v*'   # запуск при пуше тега (например v1.0.0)
   pull_request:
     branches: [ "main" ]
 
@@ -13,61 +11,29 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Забираем код из репозитория
       - name: Checkout sources
         uses: actions/checkout@v3
 
-      # 2. Устанавливаем JDK 17
       - name: Set up JDK 17
         uses: actions/setup-java@v3
         with:
           java-version: '17'
           distribution: 'temurin'
 
-      # 3. Устанавливаем unzip + curl
-      - name: Install unzip and curl
-        run: sudo apt-get update && sudo apt-get install -y unzip curl
+      - name: Install unzip
+        run: sudo apt-get update && sudo apt-get install -y unzip
 
-      # 4. Распаковываем проект
       - name: Unzip project
         run: unzip WikiMediaArtWidget_GitHub.zip -d .
 
-      # 5. Скачиваем настоящий gradle-wrapper.jar из Gradle 8.7
-      - name: Download Gradle Wrapper JAR
-        run: |
-          mkdir -p WikiMediaArtWidget_GitHub/gradle/wrapper
-          curl -L -o gradle-8.7-bin.zip https://services.gradle.org/distributions/gradle-8.7-bin.zip
-          unzip gradle-8.7-bin.zip -d gradle-8.7-bin
-          cp gradle-8.7-bin/gradle-8.7/lib/gradle-wrapper.jar WikiMediaArtWidget_GitHub/gradle/wrapper/gradle-wrapper.jar
-
-      # 6. Делаем gradlew исполняемым
       - name: Grant execute permission for gradlew
         run: chmod +x ./WikiMediaArtWidget_GitHub/gradlew
 
-      # 7. Сборка проекта
-      - name: Build with Gradle Wrapper
-        run: cd WikiMediaArtWidget_GitHub && ./gradlew build --stacktrace
+      - name: Build Debug APK
+        run: cd WikiMediaArtWidget_GitHub && ./gradlew assembleDebug --stacktrace
 
-      # 8. Собираем debug APK
-      - name: Assemble Debug APK
-        run: cd WikiMediaArtWidget_GitHub && ./gradlew assembleDebug
-
-      # 9. Загружаем APK как артефакт
       - name: Upload Debug APK
         uses: actions/upload-artifact@v4
         with:
           name: app-debug
           path: WikiMediaArtWidget_GitHub/app/build/outputs/apk/debug/app-debug.apk
-
-      # 10. Если пушим тег — создаём релиз с APK
-      - name: Create GitHub Release
-        if: startsWith(github.ref, 'refs/tags/')
-        uses: softprops/action-gh-release@v2
-        with:
-          files: WikiMediaArtWidget_GitHub/app/build/outputs/apk/debug/app-debug.apk
-          name: Release ${{ github.ref_name }}
-          body: |
-            📦 Автоматическая сборка для релиза ${{ github.ref_name }}
-            Вложение: `app-debug.apk`
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
