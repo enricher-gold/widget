@@ -38,7 +38,7 @@ jobs:
           mkdir -p WikiMediaArtWidget_GitHub/gradle/wrapper
           curl -L -o gradle-8.7-bin.zip https://services.gradle.org/distributions/gradle-8.7-bin.zip
           unzip gradle-8.7-bin.zip -d gradle-8.7-bin
-          cp gradle-8.7-bin/gradle-8.7/lib/plugins/gradle-wrapper.jar WikiMediaArtWidget_GitHub/gradle/wrapper/gradle-wrapper.jar
+          cp gradle-8.7-bin/gradle-8.7/lib/gradle-wrapper.jar WikiMediaArtWidget_GitHub/gradle/wrapper/gradle-wrapper.jar
 
       # 6. Делаем gradlew исполняемым
       - name: Grant execute permission for gradlew
