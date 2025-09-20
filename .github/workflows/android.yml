@@ -31,6 +31,13 @@ jobs:
           unzip WikiMediaArtWidget_GitHub.zip -d project
           ls -la project
 
+      - name: Create gradle.properties
+        working-directory: project
+        run: |
+          echo "android.useAndroidX=true" >> gradle.properties
+          echo "android.enableJetifier=true" >> gradle.properties
+          cat gradle.properties
+
       - name: Generate Gradle Wrapper (8.7)
         working-directory: project
         run: |
@@ -42,7 +49,7 @@ jobs:
 
       - name: Build Debug APK
         working-directory: project
-        run: ./gradlew assembleDebug
+        run: ./gradlew assembleDebug --stacktrace
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
