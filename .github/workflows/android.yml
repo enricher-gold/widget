@@ -38,11 +38,22 @@ jobs:
           echo "android.enableJetifier=true" >> gradle.properties
           cat gradle.properties
 
-      - name: Fix launcher XML (remove XML header)
+      - name: Fix broken launcher icons
         working-directory: project
         run: |
-          sed -i '1{/<?xml/d;}' app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml || true
-          sed -i '1{/<?xml/d;}' app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml || true
+          cat > app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml <<'EOF'
+          <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+              <background android:drawable="@mipmap/ic_launcher_background"/>
+              <foreground android:drawable="@mipmap/ic_launcher_foreground"/>
+          </adaptive-icon>
+          EOF
+
+          cat > app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml <<'EOF'
+          <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+              <background android:drawable="@mipmap/ic_launcher_background"/>
+              <foreground android:drawable="@mipmap/ic_launcher_foreground"/>
+          </adaptive-icon>
+          EOF
 
       - name: Generate Gradle Wrapper (8.7)
         working-directory: project
