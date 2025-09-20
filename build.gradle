@@ -1,5 +1,5 @@
 plugins {
-    id 'com.android.application' version '7.3.1'  // Совместимая версия для Gradle 8.7
+    id 'com.android.application' version '7.1.3'  // Проверенная версия плагина для совместимости с Gradle 8.7
     id 'org.jetbrains.kotlin.android' version '1.8.10'
 }
 
